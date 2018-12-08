@@ -21,7 +21,7 @@ class HungarianMatrix{
 		HungarianMatrix();
 		HungarianMatrix(int size, vector<vector<int>> matrix);
 		
-		vector<vector<int>> get_PerfectMatching();
+		vector<int> get_PerfectMatching();
 		//=======================
 		int size;
 		vector<vector<int>> Hmat;
@@ -34,6 +34,7 @@ class HungarianMatrix{
 		void find_T(vector<vector<bool>>);
 
 		bool has_PerfectMatch(vector<vector<bool>>);
+		vector<int> find_PerfectMatch(vector<vector<bool>>, vector<int>, int);
 		//=======================
 		int epsilon;
 		vector<int>	u;

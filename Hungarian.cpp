@@ -36,8 +36,7 @@ int HungarianMatrix::M_zero_number(vector<vector<int>> M){
 	return num;
 }
 
-vector<vector<int>> HungarianMatrix::get_PerfectMatching(){
-	vector<vector<int>> perfectMatch;
+vector<int> HungarianMatrix::get_PerfectMatching(){
 	
 /*	ini: - u = max(W_row)
  *		 - v = 0
@@ -57,21 +56,17 @@ vector<vector<int>> HungarianMatrix::get_PerfectMatching(){
 	for(int i = 0; i < size; i++){
 		u[i] = get_Mmax(W[i]);
 		v[i] = 0;
-	    // remove u[i] in W_row
 		for(int j = 0; j < size; j++){
-			if(W[i][j]==u[i]){
-				W[i][j] = 0;
-				break;
-			}
+			W[i][j] = u[i]+v[j]-W[i][j];
 		}
 	}
-	
+
 	vector<vector<bool>> M;
-	vector<bool> R, T;
 	M = build_vector_cover(W);
+
 	find_R(M);
 	find_T(M);
-	
+
 	while(!has_PerfectMatch(M)){
 		// e
 		vector<bool> R_reverse;
@@ -81,34 +76,66 @@ vector<vector<int>> HungarianMatrix::get_PerfectMatching(){
 		R_reverse.flip();
 		T_reverse.flip();
 
-		int min = INT_MAX;
+		epsilon = INT_MAX;
 		for(int i = 0; i < size; i++){
 		for(int j = 0; j < size; j++){
-			if(R_reverse[i] && T_reverse[j])
-				if((u[i]+v[j]-W[i][j]) < min)	min = W[i][j];
+			if(R_reverse[i] && T_reverse[j]){
+				if((W[i][j]) < epsilon)	epsilon = W[i][j];
+			}
 		}
 		}	
-		epsilon = min;
 		// u, v, W	
 		for(int i = 0; i < size; i++){
 			if(R_reverse[i]) u[i] -= epsilon;
 			if(T[i]) v[i] += epsilon;
 			// W
 			for(int j = 0; j <size; j++){
-				if(R_reverse[i] && T_reverse[j]) W[i][j] -= epsilon;
+				if(R_reverse[i]&&W[i][j]!=0) W[i][j] -= epsilon;
+				if(T[j]&&W[i][j]!=0) W[i][j] += epsilon;
 			}
 		}
+
+		M = build_vector_cover(W);
 		// R, T
 		find_R(M);
 		find_T(M);
 	}
-
-
-	return perfectMatch;
+	vector<int> P(size, 0);
+	return find_PerfectMatch(M, P, 0);
+}
+bool HungarianMatrix::has_PerfectMatch(vector<vector<bool>> M){
+	if(M.size()==2){
+		if(M[0][1]==true && M[1][0]) return true;
+		if(M[1][0]==true && M[0][1]) return true;
+		return false;
+	}
+	for(int i=0; i<size; i++){
+		if(M[0][i]==true){
+			vector<vector<bool>> m;
+			m.assign(M.begin(), M.end());
+			m.erase(m.begin());	// remove first row
+			for(int j=0;j<m.size();j++){	// remove first column
+				m[j].erase(m[j].begin());
+			}
+			return has_PerfectMatch(m);
+		}
+	}
+	return false;
 }
 
-bool has_PerfectMatch(vector<vector<bool>> M){
-	while
+vector<int> HungarianMatrix::find_PerfectMatch(vector<vector<bool>> M, vector<int> P, int index){
+	if(index==size) return P;
+
+	for(int i = index; i < size; i++){
+		for(int j = 0; j < size; j++){
+			if((M[i][j]==true) && (count(P.begin(), P.begin()+index+1, j)<1)){
+				P[i] = j;
+			   	return find_PerfectMatch(M, P, index+1);
+			}
+		}
+	}
+
+	return P;
 }
 vector<vector<bool>> HungarianMatrix::build_vector_cover(vector<vector<int>> M){
 	vector<vector<bool>> V(size, vector<bool>(size));
@@ -123,14 +150,14 @@ vector<vector<bool>> HungarianMatrix::build_vector_cover(vector<vector<int>> M){
 
 	return V;
 }
-void Hungarian::find_R(vector<vector<bool>> V){	
+void HungarianMatrix::find_R(vector<vector<bool>> V){	
 	for(int i = 0; i < size; i++){
 		int num=0;
 		int zeroPos=-1;		
 		// row
 		if(M_zero_number(V[i]) == (size-1)){
 			for(int j = 0; j < size; j++){
-				if(V[j] == true){
+				if(V[i][j] == true){
 					zeroPos = j;
 					break;
 				}
@@ -147,7 +174,7 @@ void Hungarian::find_R(vector<vector<bool>> V){
 	
 }
 
-void Hungarian::find_T(vector<vector<bool>> V){	
+void HungarianMatrix::find_T(vector<vector<bool>> V){	
 	int num;
 	for(int i = 0; i < size; i++){
 		num = 0;
