@@ -18,19 +18,19 @@ HungarianMatrix::HungarianMatrix(int size, vector<vector<int>> matrix):size(size
 }
 
 template <class U>
-int HungarianMatrix::M_zero_number(vector<U> M){
+int HungarianMatrix::M_number(vector<U> M, int x){
 	int num=0;
 	for(auto it=M.begin(); it!=M.end(); it++){
-		if(*it==0) num++;
+		if(*it==x) num++;
 	}
 	return num;
 }
 
-int HungarianMatrix::M_zero_number(vector<vector<int>> M){
+int HungarianMatrix::M_number(vector<vector<int>> M, int x){
 	int num=0;
 	for(auto it=M.begin(); it!=M.end(); it++){
 	for(auto it1=(*it).begin(); it1!=(*it).end(); it1++){
-		if(*it1==0) num++;
+		if(*it1==x) num++;
 	}
 	}
 	return num;
@@ -89,18 +89,25 @@ vector<int> HungarianMatrix::get_PerfectMatching(){
 			if(R_reverse[i]) u[i] -= epsilon;
 			if(T[i]) v[i] += epsilon;
 			// W
-			for(int j = 0; j <size; j++){
-				if(R_reverse[i]&&W[i][j]!=0) W[i][j] -= epsilon;
-				if(T[j]&&W[i][j]!=0) W[i][j] += epsilon;
+			for(int j = 0; j < size; j++){
+				if(W[i][j]!=0){
+					if(R_reverse[i]) W[i][j] -= epsilon;
+					if(T[j]) W[i][j] += epsilon;
+				}
 			}
 		}
 
 		M = build_vector_cover(W);
 		// R, T
+		R.clear(); R.resize(size, false);
+		T.clear(); T.resize(size, false);
 		find_R(M);
 		find_T(M);
+
 	}
-	vector<int> P(size, 0);
+
+
+	vector<int> P(size, -1);
 	return find_PerfectMatch(M, P, 0);
 }
 bool HungarianMatrix::has_PerfectMatch(vector<vector<bool>> M){
@@ -113,9 +120,9 @@ bool HungarianMatrix::has_PerfectMatch(vector<vector<bool>> M){
 		if(M[0][i]==true){
 			vector<vector<bool>> m;
 			m.assign(M.begin(), M.end());
-			m.erase(m.begin());	// remove first row
-			for(int j=0;j<m.size();j++){	// remove first column
-				m[j].erase(m[j].begin());
+			m.erase(m.begin());				// remove first row
+			for(int j=0;j<m.size();j++){	// remove n column
+				m[j].erase(m[j].begin()+i);
 			}
 			return has_PerfectMatch(m);
 		}
@@ -125,17 +132,20 @@ bool HungarianMatrix::has_PerfectMatch(vector<vector<bool>> M){
 
 vector<int> HungarianMatrix::find_PerfectMatch(vector<vector<bool>> M, vector<int> P, int index){
 	if(index==size) return P;
+	vector<int> p; p.assign(P.begin(), P.end());
 
-	for(int i = index; i < size; i++){
-		for(int j = 0; j < size; j++){
-			if((M[i][j]==true) && (count(P.begin(), P.begin()+index+1, j)<1)){
-				P[i] = j;
-			   	return find_PerfectMatch(M, P, index+1);
+	for(int i = 0;i < size;i++){
+		if(M[index][i]==true){
+			p[index] = i;
+			if(count(p.begin(), p.begin()+index, i)==0){
+				p[index] = i;
+			   	p = find_PerfectMatch(M, p, index+1);
+				if(M_number(p, -1)==0) return p;
 			}
 		}
 	}
-
-	return P;
+	p.assign(P.begin(), P.end());
+	return p;
 }
 vector<vector<bool>> HungarianMatrix::build_vector_cover(vector<vector<int>> M){
 	vector<vector<bool>> V(size, vector<bool>(size));
@@ -155,7 +165,7 @@ void HungarianMatrix::find_R(vector<vector<bool>> V){
 		int num=0;
 		int zeroPos=-1;		
 		// row
-		if(M_zero_number(V[i]) == (size-1)){
+		if(M_number(V[i], 0) == (size-1)){
 			for(int j = 0; j < size; j++){
 				if(V[i][j] == true){
 					zeroPos = j;

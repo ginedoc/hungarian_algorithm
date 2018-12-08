@@ -27,8 +27,8 @@ class HungarianMatrix{
 		vector<vector<int>> Hmat;
 	private:
 		template <class U>
-			int M_zero_number(vector<U>);
-		int M_zero_number(vector<vector<int>>);
+			int M_number(vector<U>, int);
+		int M_number(vector<vector<int>>, int);
 		vector<vector<bool>> build_vector_cover(vector<vector<int>>);
 		void find_R(vector<vector<bool>>);
 		void find_T(vector<vector<bool>>);

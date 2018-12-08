@@ -12,7 +12,9 @@ int main(){
 	HungarianMatrix H(5,matrix);
 	vector<int> R;
 	R=H.get_PerfectMatching();
-	for(int i=0;i<R.size();i++)
-		cout << R[i] << " ";
-	cout << endl;
+	int weight=0;
+	for(int i=0;i<H.size;i++){
+		weight += matrix[i][R[i]];
+	}
+	cout << weight << endl;
 }
