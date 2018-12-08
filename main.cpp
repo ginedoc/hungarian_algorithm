@@ -8,6 +8,9 @@ int main(){
 								{3,4,6,3,4},
 								{4,6,5,8,6}
 							  };
+	int a;
+	cin >> a;
+	cout << a;
 
 	HungarianMatrix H(5,matrix);
 	vector<int> R;
